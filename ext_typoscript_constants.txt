@@ -1,0 +1,4 @@
+config.devnullseo {
+	# cat=devnull-seo/base/1; type=string; label=page.typeNum for the xml-sitemap
+	typeNum = 1963
+}
