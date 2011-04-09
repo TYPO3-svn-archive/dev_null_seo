@@ -1,10 +1,10 @@
 config.devnullseo.sitemap.pages {
-	# cat=devnull-seo/enable/1; type=string; label=renders to include for pagecontent
+	# cat=dev-null-seo/enable/1; type=string; label=renders to include for pagecontent
 	include = images,flvplayer,pwhighslide
 }
 
 config.devnullseo {
-	# cat=devnull-seo/base/1; type=string; label=page.typeNum for the xml-sitemap
+	# cat=dev-null-seo/base/1; type=string; label=page.typeNum for the xml-sitemap
 	typeNum = 1963
 }
 
