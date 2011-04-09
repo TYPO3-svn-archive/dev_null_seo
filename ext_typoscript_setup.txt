@@ -2,18 +2,16 @@ config.devnullseo {
 	sitemap {
 		include = pages
 		pages {
-			include = images,flvplayer
-			myimages {
-				renderer = images
-			}
+			include = {$config.devnullseo.sitemap.pages.include}
 		}
 	}
 	rendererSitemap {
 		pages  = dev_null_seo:renderer/class.tx_devnullseo_render_pages.php:tx_devnullseo_render_pages
 	}
 	rendererPages {
-		flvplayer = dev_null_seo:renderer/class.tx_devnullseo_render_flvplayer.php:tx_devnullseo_render_flvplayer
 		images = dev_null_seo:renderer/class.tx_devnullseo_render_images.php:tx_devnullseo_render_images
+		flvplayer = dev_null_seo:renderer/class.tx_devnullseo_render_flvplayer.php:tx_devnullseo_render_flvplayer
+		pwhighslide = dev_null_seo:renderer/class.tx_devnullseo_render_pwhighslide.php:tx_devnullseo_render_pwhighslide
 	}
 	DEBUGxmlWraps {
 		urlset {
@@ -49,8 +47,8 @@ config.devnullseo {
 		imageTitle {
 			outerWrap = <li class="imageTitle">|</li>
 		}
-		imageLicence {
-			outerWrap = <li class="imageLicence">|</li>
+		imageLicense {
+			outerWrap = <li class="imageLicense">|</li>
 		}
 		video {
 			outerWrap = <ul class="video">|</ul>
@@ -109,7 +107,7 @@ config.devnullseo {
 		imageTitle {
 			outerWrap = <image:title>|</image:title>
 		}
-		imageLicence {
+		imageLicense {
 			outerWrap = <image:license>|</image:license>
 		}
 		video {

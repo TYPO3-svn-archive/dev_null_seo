@@ -38,7 +38,7 @@ require_once(PATH_t3lib.'utility/class.t3lib_utility_debug.php');
 // base class
 require_once(t3lib_extMgm::extPath('dev_null_seo', 'renderer/class.tx_devnullseo_render_abstract.php'));
 
-class tx_devnullseo_render_images extends tx_devnullseo_render_abstract
+class tx_devnullseo_render_pwhighslide extends tx_devnullseo_render_abstract
 {
 
 	public function getXmlWrapName() {
@@ -50,40 +50,74 @@ class tx_devnullseo_render_images extends tx_devnullseo_render_abstract
 	}
 	
 	public function renderItems($page, $config, $section = NULL) {
+	
 		$selectClause = array(
 			'pid = ' . $page,							// page holding record
-			'CType = "textpic"',						// content types
+			'CType = "list"',							// content types
+			'list_type = "pw_highslide_gallery_pi1"',   // plugin
 			'deleted = 0',								// no deleted records
 			'(starttime = 0 || starttime > NOW())',		// starttime
 			'(endtime = 0 || endtime < NOW())',			// endtime
 			'fe_group = ""',							// only unrestricted content
 		);
 
-		// build query to access page content
-		$dbRes = $GLOBALS['TYPO3_DB']->exec_SELECTquery('deleted, starttime, endtime, image, imagecaption', 'tt_content', implode(' AND ', $selectClause));
-		while($rowArray = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($dbRes)) {
-			
-			if(!$rowArray['image'])
-				continue;
+		$selectDamFields = array(
+			'tx_dam.caption',
+			'tx_dam.uid',
+			'tx_dam.file_name',
+			'tx_dam.file_path',
+			'tx_dam.title',
+			'tx_dam.description',
+			'tx_dam.file_name',
+			'tx_dam.fe_group',
+		);
 
-			$_captions 	= explode("\r\n", $rowArray['imagecaption']);
+		$selectDamClause = array(
+			'tx_dam.uid = tx_dam_mm_cat.uid_local',
+			'tx_dam.fe_group = ""',
+		);
+		
+		// build query to access page content
+		$dbRes = $GLOBALS['TYPO3_DB']->exec_SELECTquery('deleted, starttime, endtime, header, pi_flexform', 'tt_content', implode(' AND ', $selectClause));
+		while($rowArray = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($dbRes)) {
+			// get flexform data
+			$_flexform 	= t3lib_div::xml2array($rowArray['pi_flexform']);
+			$_media     = $_flexform['data']['sDEF']['lDEF'];
+			
+			// t3lib_utility_Debug::printArray($_media, 'media');
+			
+			$_dam_cat   = $_media['which_dam_cat']['vDEF'];
 			$_copyright = $this->getPageLink($page);
+
+			// limit to category
+			$selectDamClause['cat'] =  'tx_dam_mm_cat.uid_foreign = ' . $_dam_cat;
+
+			$GLOBALS['TYPO3_DB']->store_lastBuiltQuery = TRUE;
+			$dbDAM = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+				implode(', ', $selectDamFields), 
+				'tx_dam, tx_dam_mm_cat', 
+				implode(' AND ', $selectDamClause)
+			);
 			
-			foreach(explode(',', $rowArray['image']) as $ndx => $image) {
-			
-				$url = $this->getImageLink($image);
-								
+			while($rowDam = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($dbDAM)) {
+				// t3lib_utility_Debug::printArray($rowDam, 'DAM');
+
+				$url = $this->getImageLink($rowDam['file_path'] . $rowDam['file_name']);
+				
 				$nodeItems = array();
 				$nodeItems[] = $this->wrapXmlItem('imageLoc', $url);
-				$nodeItems[] = $this->wrapXmlItem('imageCaption', $_captions[$ndx] ? $_captions[$ndx] : $image);
+				$nodeItems[] = $this->wrapXmlItem('imageCaption', $rowDam['caption'] ? $rowDam['caption'] : $rowDam['file_name']);
 				$nodeItems[] = $this->wrapXmlItem('imageLicense', $_copyright);
 				
 				// t3lib_utility_Debug::printArray($nodeItems, 'image');
 				
 				$xml = $this->wrapXmlItem('image', implode("\n", $nodeItems));
 				
-				$this->items[$image] = $xml;
+				$this->items[$url] = $xml;
 			}
+			
+			$GLOBALS['TYPO3_DB']->sql_free_result($dbDAM);
+
 		}
 		// t3lib_utility_Debug::printArray($this->items, 'image');
 		
@@ -114,7 +148,7 @@ class tx_devnullseo_render_images extends tx_devnullseo_render_abstract
 	 */
 	protected function getImageLink($image) {
 
-		$link = htmlspecialchars('uploads/pics/' . $image);
+		$link = htmlspecialchars($image);
 		return t3lib_div::locationHeaderUrl($link);
 	}
 

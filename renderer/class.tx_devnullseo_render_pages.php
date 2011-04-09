@@ -72,10 +72,10 @@ class tx_devnullseo_render_pages extends tx_devnullseo_render_abstract
 
 		if(!$renderer)
 			return NULL;
-			
+
+		// get single renderer config fields (Extension : file name : class)
 		$_cfg = explode(':', $renderer);
-		// t3lib_utility_Debug::printArray($_cfg);
-		
+
 		// load file
 		t3lib_div::requireOnce(t3lib_extMgm::extPath($_cfg[0], $_cfg[1]));
 		
