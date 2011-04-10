@@ -10,6 +10,7 @@ config.devnullseo {
 	}
 	rendererPages {
 		images = dev_null_seo:renderer/class.tx_devnullseo_render_images.php:tx_devnullseo_render_images
+		dam_ttcontent = dev_null_seo:renderer/class.tx_devnullseo_render_dam_ttcontent.php:tx_devnullseo_render_dam_ttcontent
 		flvplayer = dev_null_seo:renderer/class.tx_devnullseo_render_flvplayer.php:tx_devnullseo_render_flvplayer
 		pwhighslide = dev_null_seo:renderer/class.tx_devnullseo_render_pwhighslide.php:tx_devnullseo_render_pwhighslide
 	}

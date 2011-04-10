@@ -22,12 +22,6 @@
 *  This copyright notice MUST APPEAR in all copies of the script!
 ***************************************************************/
 
-/** 
- * @author	Benjamin Mack (www.xnos.org) 
- * @subpackage	tx_seobasics
- * 
- * This package includes all functions for generating XML sitemaps
- */
 
 require_once(PATH_t3lib.'class.t3lib_page.php');
 require_once(PATH_t3lib.'class.t3lib_div.php');
@@ -50,9 +44,16 @@ class tx_devnullseo_render_images extends tx_devnullseo_render_abstract
 	}
 	
 	public function renderItems($page, $config, $section = NULL) {
+	
+		if(t3lib_extMgm::isLoaded('dam_ttcontent')) {
+			$this->items[] = '<!-- Error: tx_devnullseo_render_dam_ttcontent - dam_ttcontent conflicts -->';
+			return;
+		}
+		
+
 		$selectClause = array(
 			'pid = ' . $page,							// page holding record
-			'CType = "textpic"',						// content types
+			'CType = "textpic" || CType = "image"',		// content types
 			'deleted = 0',								// no deleted records
 			'(starttime = 0 || starttime > NOW())',		// starttime
 			'(endtime = 0 || endtime < NOW())',			// endtime

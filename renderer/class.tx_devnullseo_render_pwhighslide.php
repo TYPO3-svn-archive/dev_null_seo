@@ -22,13 +22,6 @@
 *  This copyright notice MUST APPEAR in all copies of the script!
 ***************************************************************/
 
-/** 
- * @author	Benjamin Mack (www.xnos.org) 
- * @subpackage	tx_seobasics
- * 
- * This package includes all functions for generating XML sitemaps
- */
-
 require_once(PATH_t3lib.'class.t3lib_page.php');
 require_once(PATH_t3lib.'class.t3lib_div.php');
 

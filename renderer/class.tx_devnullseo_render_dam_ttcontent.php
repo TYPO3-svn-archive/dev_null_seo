@@ -31,7 +31,7 @@ require_once(PATH_t3lib.'utility/class.t3lib_utility_debug.php');
 // base class
 require_once(t3lib_extMgm::extPath('dev_null_seo', 'renderer/class.tx_devnullseo_render_abstract.php'));
 
-class tx_devnullseo_render_flvplayer extends tx_devnullseo_render_abstract
+class tx_devnullseo_render_dam_ttcontent extends tx_devnullseo_render_abstract
 {
 
 	public function getXmlWrapName() {
@@ -43,10 +43,24 @@ class tx_devnullseo_render_flvplayer extends tx_devnullseo_render_abstract
 	}
 	
 	public function renderItems($page, $config, $section = NULL) {
+
+		if(! t3lib_extMgm::isLoaded('dam')) {
+			$this->items[] = '<!-- Error: tx_devnullseo_render_dam_ttcontent - dam not loaded -->';
+			return;
+		}
+		
+		if(! t3lib_extMgm::isLoaded('dam_ttcontent')) {
+			$this->items[] = '<!-- Error: tx_devnullseo_render_dam_ttcontent - dam_ttcontent not loaded -->';
+			return;
+		}
+		
+		// dam db library
+		require_once(t3lib_extMgm::extPath('dam').'lib/class.tx_dam_db.php');
+
 		$selectClause = array(
 			'pid = ' . $page,							// page holding record
-			'CType = "list"',							// content types
-			'list_type = "flvplayer_pi1"',              // plugin
+			'(CType = "textpic" || CType = "image")',	// content types
+			'tx_damttcontent_files <> 0',				// with references
 			'deleted = 0',								// no deleted records
 			'(starttime = 0 || starttime > NOW())',		// starttime
 			'(endtime = 0 || endtime < NOW())',			// endtime
@@ -54,32 +68,32 @@ class tx_devnullseo_render_flvplayer extends tx_devnullseo_render_abstract
 		);
 
 		// build query to access page content
-		$dbRes = $GLOBALS['TYPO3_DB']->exec_SELECTquery('deleted, starttime, endtime, header, pi_flexform', 'tt_content', implode(' AND ', $selectClause));
+		$dbRes = $GLOBALS['TYPO3_DB']->exec_SELECTquery('uid, deleted, starttime, endtime, imagecaption, tx_damttcontent_files', 'tt_content', implode(' AND ', $selectClause));
 		while($rowArray = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($dbRes)) {
 
-			// t3lib_utility_Debug::printArray($rowArray, 'media');
-
-			$_flexform 	= t3lib_div::xml2array($rowArray['pi_flexform']);
-			$_media     = $_flexform['data']['sDEF']['lDEF'];
+			$damFiles = tx_dam_db::getReferencedFiles('tt_content', $rowArray['uid'], 'tx_damttcontent_files');
 			
-			// t3lib_utility_Debug::printArray($_media, 'media');
-
+			$valFiles = array_values($damFiles['files']);
+			$valRows  = array_values($damFiles['rows']);
+			
+			$_captions 	= explode("\r\n", $rowArray['imagecaption']);
 			$_copyright = $this->getPageLink($page);
+						
+			foreach($valFiles as $ndx => $image) {
 			
-			$_video		= $this->getImageLink($_media['file']['vDEF']);
-			$_splash	= $this->getImageLink($_media['image']['vDEF']);
-							
-			$nodeItems = array();
-			$nodeItems[] = $this->wrapXmlItem('videoLoc', $_video);
-			$nodeItems[] = $this->wrapXmlItem('videoThumb', $_splash);
-			$nodeItems[] = $this->wrapXmlItem('videoTitel', $rowArray['header']);
-			$nodeItems[] = $this->wrapXmlItem('videoDescr', $rowArray['header']);
-
-			// t3lib_utility_Debug::printArray($nodeItems, 'image');
-			
-			$xml = $this->wrapXmlItem('video', implode("\n", $nodeItems));
-			
-			$this->items[$_video] = $xml;
+				$url = $this->getImageLink($image);
+								
+				$nodeItems = array();
+				$nodeItems[] = $this->wrapXmlItem('imageLoc', $url);
+				$nodeItems[] = $this->wrapXmlItem('imageCaption', $_captions[$ndx] ? $_captions[$ndx] : $valRows[$ndx]['title']);
+				$nodeItems[] = $this->wrapXmlItem('imageLicense', $_copyright);
+				
+				// t3lib_utility_Debug::printArray($nodeItems, 'image');
+				
+				$xml = $this->wrapXmlItem('image', implode("\n", $nodeItems));
+				
+				$this->items[$image] = $xml;
+			}
 		}
 		// t3lib_utility_Debug::printArray($this->items, 'image');
 		

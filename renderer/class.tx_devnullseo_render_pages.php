@@ -59,8 +59,6 @@ class tx_devnullseo_render_pages extends tx_devnullseo_render_abstract
 	
 	public function getIncludeRenderer($name, $pageConfig) {
 		
-		// t3lib_utility_Debug::debug($name, 'include');
-
 		$includeKey = $pageConfig['sitemap.']['pages.'][$name . '.']['renderer'];
 		if($includeKey) {
 			$renderer = $pageConfig['rendererPages.'][$includeKey];
